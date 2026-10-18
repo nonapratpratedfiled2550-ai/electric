@@ -40,12 +40,12 @@
   header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 16px;
-    padding: 14px 18px 12px;
+    padding: 10px 16px;
     border-bottom: 1px solid var(--line);
-    background: rgba(7, 16, 28, 0.78);
+    background: rgba(7, 16, 28, 0.82);
     backdrop-filter: blur(10px);
+    z-index: 5;
   }
   .brand { display: flex; align-items: center; gap: 12px; }
   .logo {
@@ -68,13 +68,13 @@
     line-height: 1.45;
     max-width: 420px;
   }
-  main {
+  main.stage {
     flex: 1;
     min-height: 0;
-    display: grid;
-    grid-template-columns: 320px minmax(0, 1fr) 380px;
-    gap: 14px;
-    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 128px 12px;
   }
   .controls, .stage, .side {
     min-width: 0;
@@ -101,8 +101,9 @@
     font-weight: 700;
   }
   .modes {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 8px;
   }
   .modes button, .flow button, .transport button {
@@ -222,15 +223,32 @@
   .canvas-wrap {
     position: relative;
     flex: 1;
-    min-height: 380px;
-    border-radius: 18px;
+    min-height: 0;
+    border-radius: 22px;
     overflow: hidden;
     background: #080d18;
-    border: 1px solid var(--line);
-    box-shadow: var(--shadow);
+    border: 1px solid rgba(103, 246, 255, 0.22);
+    box-shadow:
+      0 0 0 1px rgba(62, 224, 255, 0.08),
+      0 0 90px rgba(62, 224, 255, 0.09),
+      var(--shadow);
   }
   #circuit { width: 100%; height: 100%; display: block; }
-  #graph { width: 100%; height: 230px; max-height: 230px; display: block; }
+  #graph { width: 100%; height: 260px; max-height: 260px; display: block; }
+  .dock {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(260px, 1.35fr) auto;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .dock .formula { max-height: 132px; overflow: auto; }
+  .dock .transport {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 0;
+  }
+  .dock .transport button { min-width: 118px; }
   .stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -267,14 +285,132 @@
     font-variant-numeric: tabular-nums;
   }
   .eq b { color: var(--cyan-2); font-weight: 700; }
-  .side { overflow: auto; padding-right: 2px; }
   .graph-card canvas {
     width: 100%;
-    height: 250px;
+    height: 260px;
     border-radius: 12px;
     background: #080d18;
     border: 1px solid var(--line);
   }
+  .fab-slot {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 60;
+  }
+  .fab-slot-left { left: 14px; }
+  .fab-slot-right { right: 14px; }
+  .fab {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 112px;
+    padding: 12px 12px 11px;
+    border-radius: 16px;
+    border: 1px solid rgba(103, 246, 255, 0.45);
+    background: rgba(12, 24, 40, 0.92);
+    color: var(--text);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 0 24px rgba(62, 224, 255, 0.12);
+    backdrop-filter: blur(10px);
+    animation: fab-in 0.55s cubic-bezier(0.18, 1.45, 0.36, 1) both;
+  }
+  .fab small {
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+  .fab-graph {
+    border-color: rgba(255, 193, 77, 0.5);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 0 24px rgba(255, 193, 77, 0.12);
+    animation-delay: 0.08s;
+  }
+  .fab[aria-expanded="true"] {
+    background: linear-gradient(180deg, #155e75, #0e3d4e);
+    border-color: var(--cyan);
+    color: white;
+  }
+  .fab-graph[aria-expanded="true"] {
+    background: linear-gradient(180deg, #6a4a12, #3d2c0c);
+    border-color: var(--amber);
+  }
+  @keyframes fab-in {
+    from { opacity: 0; transform: scale(0.82) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    background: rgba(4, 8, 16, 0.28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .backdrop.show { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed;
+    top: 76px;
+    bottom: calc(var(--dock-h, 190px) + 22px);
+    z-index: 55;
+    display: flex;
+    flex-direction: column;
+    width: min(400px, calc(100vw - 280px));
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: rgba(12, 20, 34, 0.96);
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.48);
+    backdrop-filter: blur(16px);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+  .sheet-tune {
+    left: 132px;
+    transform: translateY(22px) scale(0.92);
+    transform-origin: left center;
+  }
+  .sheet-graph {
+    right: 132px;
+    width: min(520px, calc(100vw - 280px));
+    transform: translateY(22px) scale(0.92);
+    transform-origin: right center;
+  }
+  .sheet {
+    transition: transform 0.28s ease, opacity 0.18s ease, visibility 0.28s;
+  }
+  .sheet.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    transition: transform 0.48s cubic-bezier(0.16, 1.5, 0.32, 1), opacity 0.18s ease, visibility 0.48s;
+  }
+  .sheet-body .card + .card { margin-top: 10px; }
+  .sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sheet-head h2 { margin: 0; }
+  .sheet-close {
+    font: inherit;
+    font-weight: 700;
+    color: var(--text);
+    background: #182438;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .sheet-body { overflow: auto; padding: 12px 14px 16px; }
   #graphNote, .foot {
     margin: 8px 0 0;
     color: var(--muted);
@@ -376,24 +512,31 @@
     outline: 2px solid var(--cyan);
     outline-offset: 2px;
   }
-  @media (min-width: 1181px) {
-    body { height: 100vh; overflow: hidden; }
-    .controls, .side { overflow: auto; }
-    .stage { overflow: auto; }
-  }
-  @media (max-width: 1180px) {
-    header { flex-direction: column; align-items: flex-start; }
-    .ideals { text-align: left; max-width: none; }
-    main { grid-template-columns: 280px minmax(0, 1fr); }
-    .side { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
-    .mis { grid-column: 1 / -1; }
-    .canvas-wrap { min-height: 460px; }
+  body { height: 100vh; overflow: hidden; }
+  @media (max-width: 980px) {
+    .ideals { display: none; }
+    main.stage { padding-left: 16px; padding-right: 16px; }
+    .fab-slot { top: auto; bottom: calc(var(--dock-h, 180px) + 12px); transform: none; }
+    .fab-slot-left { left: 12px; }
+    .fab-slot-right { right: 12px; }
+    .sheet-tune, .sheet-graph {
+      left: 12px;
+      right: 12px;
+      width: auto;
+      top: auto;
+      bottom: calc(var(--dock-h, 180px) + 78px);
+      max-height: calc(100vh - var(--dock-h, 180px) - 120px);
+      transform: translateY(18px) scale(0.92);
+      transform-origin: bottom center;
+    }
+    .sheet-tune.open, .sheet-graph.open { transform: translateY(0) scale(1); }
   }
   @media (max-width: 860px) {
-    main { grid-template-columns: 1fr; }
-    .side { grid-template-columns: 1fr; }
-    .stats { grid-template-columns: 1fr; }
-    .transport { grid-template-columns: 1fr; }
+    header { flex-wrap: wrap; }
+    header .modes { width: 100%; justify-content: flex-start; }
+    .dock { grid-template-columns: 1fr; }
+    .dock .transport { flex-direction: row; }
+    .stats { grid-template-columns: 1fr 1fr 1fr; }
   }
 </style>
 </head>
@@ -406,23 +549,60 @@
       <p>สื่อจำลองเชิงโต้ตอบสำหรับมัธยมศึกษาตอนปลาย (ม.4–ม.6)</p>
     </div>
   </div>
+  <div class="modes" role="radiogroup" aria-label="เลือกโหมดวงจร">
+    <button type="button" data-mode="ohm" role="radio" aria-checked="true">กฎของโอห์ม<small>V = IR</small></button>
+    <button type="button" data-mode="series" role="radio" aria-checked="false">อนุกรม<small>R₁ แล้วตามด้วย R₂</small></button>
+    <button type="button" data-mode="parallel" role="radio" aria-checked="false">ขนาน<small>R₁ คู่กับ R₂</small></button>
+    <button type="button" data-mode="mixed" role="radio" aria-checked="false">ผสม<small>R₁ + (R₂ ∥ R₃)</small></button>
+  </div>
   <div class="ideals">อุปกรณ์อุดมคติ · ความต้านทานภายในแหล่งจ่าย = 0 Ω · ความต้านทานสาย = 0 Ω</div>
 </header>
 <pre id="problems" hidden></pre>
-<main>
-  <section class="controls panel" aria-label="แผงควบคุม">
-    <div>
-      <h2>โหมดวงจร</h2>
-      <div class="modes" role="radiogroup" aria-label="เลือกโหมดวงจร">
-        <button type="button" data-mode="ohm" role="radio" aria-checked="true">กฎของโอห์ม<small>V = IR</small></button>
-        <button type="button" data-mode="series" role="radio" aria-checked="false">อนุกรม<small>R₁ แล้วตามด้วย R₂</small></button>
-        <button type="button" data-mode="parallel" role="radio" aria-checked="false">ขนาน<small>R₁ คู่กับ R₂</small></button>
-        <button type="button" data-mode="mixed" role="radio" aria-checked="false">ผสม<small>R₁ + (R₂ ∥ R₃)</small></button>
+<main class="stage">
+  <div class="canvas-wrap">
+    <canvas id="circuit" aria-label="แผนภาพวงจรไฟฟ้าพร้อมการเคลื่อนที่ของประจุ"></canvas>
+  </div>
+  <div class="dock">
+    <div class="stats">
+      <div class="stat stat-v">
+        <span class="k">แรงดันรวม V<sub>total</sub></span>
+        <div class="row"><b id="statV">12.00</b><span class="u">V</span></div>
+        <span class="sub" id="statVHint"></span>
       </div>
-      <p class="hint" id="modeHint"></p>
+      <div class="stat stat-i">
+        <span class="k">กระแสรวม I<sub>total</sub></span>
+        <div class="row"><b id="statI">1.200</b><span class="u">A</span></div>
+        <span class="sub" id="statIHint"></span>
+      </div>
+      <div class="stat stat-r">
+        <span class="k">ความต้านทานรวม R<sub>eq</sub></span>
+        <div class="row"><b id="statR">10.00</b><span class="u">Ω</span></div>
+        <span class="sub" id="statRHint"></span>
+      </div>
     </div>
+    <div class="formula" id="formula"></div>
+    <div class="transport" aria-label="ตัวควบคุมแอนิเมชัน">
+      <button type="button" id="btnPlay">เริ่ม</button>
+      <button type="button" id="btnPause">หยุดชั่วคราว</button>
+      <button type="button" id="btnReset">ตั้งค่าใหม่</button>
+    </div>
+  </div>
+</main>
+<div class="fab-slot fab-slot-left">
+  <button type="button" class="fab" id="fabTune" aria-expanded="false" aria-controls="sheetTune">ปรับค่า<small id="fabTuneMeta">12 V</small></button>
+</div>
+<div class="fab-slot fab-slot-right">
+  <button type="button" class="fab fab-graph" id="fabGraph" aria-expanded="false" aria-controls="sheetGraph">กราฟ<small>V–I</small></button>
+</div>
+<div class="backdrop" id="backdrop"></div>
+<aside class="sheet sheet-tune" id="sheetTune" role="dialog" aria-label="ปรับค่า">
+  <div class="sheet-head">
+    <h2>ปรับค่า</h2>
+    <button type="button" class="sheet-close" data-close="tune">ปิด</button>
+  </div>
+  <div class="sheet-body">
+    <p class="hint" id="modeHint"></p>
     <div>
-      <h2>ตัวแปร</h2>
       <div class="field" id="rowV">
         <div class="field-top">
           <label for="vRange">แรงดันรวม V<sub>total</sub></label>
@@ -460,43 +640,19 @@
       </div>
       <p class="note">จุดบนสายคือประจุที่กำลังเคลื่อนที่ ความเร็วแปรผันตรงกับกระแส I ในสายนั้น ถ้า I เท่ากัน จุดจะเร็วเท่ากัน</p>
     </div>
-    <div class="transport" aria-label="ตัวควบคุมแอนิเมชัน">
-      <button type="button" id="btnPlay">เริ่ม</button>
-      <button type="button" id="btnPause">หยุดชั่วคราว</button>
-      <button type="button" id="btnReset">ตั้งค่าใหม่</button>
-    </div>
     <div class="assume">
       แอมมิเตอร์อุดมคติมีความต้านทาน 0 Ω จึงต่ออนุกรมได้โดยไม่ลดกระแส
       โวลต์มิเตอร์อุดมคติมีกระแสผ่านประมาณ 0 จึงไม่มีประจุเคลื่อนบนสายประของโวลต์มิเตอร์
       R เป็นสมบัติของตัวต้านทาน ไม่ได้เปลี่ยนตามการเลื่อน V
     </div>
-  </section>
-
-  <section class="stage" aria-label="วงจรและการคำนวณ">
-    <div class="canvas-wrap">
-      <canvas id="circuit" aria-label="แผนภาพวงจรไฟฟ้าพร้อมการเคลื่อนที่ของประจุ"></canvas>
-    </div>
-    <div class="stats">
-      <div class="stat stat-v">
-        <span class="k">แรงดันรวม V<sub>total</sub></span>
-        <div class="row"><b id="statV">12.00</b><span class="u">V</span></div>
-        <span class="sub" id="statVHint"></span>
-      </div>
-      <div class="stat stat-i">
-        <span class="k">กระแสรวม I<sub>total</sub></span>
-        <div class="row"><b id="statI">1.200</b><span class="u">A</span></div>
-        <span class="sub" id="statIHint"></span>
-      </div>
-      <div class="stat stat-r">
-        <span class="k">ความต้านทานรวม R<sub>eq</sub></span>
-        <div class="row"><b id="statR">10.00</b><span class="u">Ω</span></div>
-        <span class="sub" id="statRHint"></span>
-      </div>
-    </div>
-    <div class="formula" id="formula"></div>
-  </section>
-
-  <aside class="side" aria-label="กราฟและผลการวิเคราะห์">
+  </div>
+</aside>
+<aside class="sheet sheet-graph" id="sheetGraph" role="dialog" aria-label="กราฟและผลการวิเคราะห์">
+  <div class="sheet-head">
+    <h2>กราฟและความเข้าใจ</h2>
+    <button type="button" class="sheet-close" data-close="graph">ปิด</button>
+  </div>
+  <div class="sheet-body">
     <section class="card graph-card">
       <h2>กราฟความสัมพันธ์ V–I</h2>
       <canvas id="graph" aria-label="กราฟแรงดันเทียบกับกระแส"></canvas>
@@ -504,8 +660,8 @@
     </section>
     <section class="card" id="analysis"></section>
     <section class="card mis" id="misconception"></section>
-  </aside>
-</main>
+  </div>
+</aside>
 <script>
 (function () {
   const C = { R1: "#2ee6c7", R2: "#ffc14d", R3: "#c084fc", trunk: "#7dd3fc" };
@@ -1512,6 +1668,13 @@
     $("statRHint").textContent = rHints[state.mode];
     const slope = 1 / physics.Req;
     $("graphNote").innerHTML = "ความชันของเส้น = 1/R<sub>eq</sub> = <b>" + fSlope(slope) + "</b> A/V · เลื่อนเฉพาะแรงดัน แล้วจุดสีเหลืองจะเคลื่อนตามเส้นตรงเส้นเดิม เพราะ R ไม่ได้เปลี่ยน · เลื่อนความต้านทานแล้วความชันจะเปลี่ยน";
+    const meta = $("fabTuneMeta");
+    if (meta) {
+      const bits = [fV(state.V) + " V", "R₁ " + fOhm(state.R1)];
+      if (state.mode !== "ohm") bits.push("R₂ " + fOhm(state.R2));
+      if (state.mode === "mixed") bits.push("R₃ " + fOhm(state.R3));
+      meta.textContent = bits.join(" · ");
+    }
     renderFormula();
     renderAnalysis();
     renderMis();
@@ -1679,9 +1842,44 @@
   renderReadouts();
   lastSig = signature();
 
-  const ro = new ResizeObserver(() => { drawCircuit(); drawGraph(performance.now()); });
+  function setSheet(name) {
+    const tune = $("sheetTune");
+    const graph = $("sheetGraph");
+    const openTune = name === "tune";
+    const openGraph = name === "graph";
+    tune.classList.toggle("open", openTune);
+    graph.classList.toggle("open", openGraph);
+    tune.inert = !openTune;
+    graph.inert = !openGraph;
+    $("fabTune").setAttribute("aria-expanded", openTune ? "true" : "false");
+    $("fabGraph").setAttribute("aria-expanded", openGraph ? "true" : "false");
+    $("backdrop").classList.toggle("show", openTune || openGraph);
+    if (openGraph) requestAnimationFrame(() => drawGraph(performance.now()));
+  }
+  $("fabTune").addEventListener("click", () => setSheet($("sheetTune").classList.contains("open") ? null : "tune"));
+  $("fabGraph").addEventListener("click", () => setSheet($("sheetGraph").classList.contains("open") ? null : "graph"));
+  $("backdrop").addEventListener("click", () => setSheet(null));
+  document.querySelectorAll("[data-close]").forEach((btn) => {
+    btn.addEventListener("click", () => setSheet(null));
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setSheet(null);
+  });
+  setSheet(null);
+
+  function syncDock() {
+    const dock = document.querySelector(".dock");
+    if (dock) document.documentElement.style.setProperty("--dock-h", dock.offsetHeight + "px");
+  }
+  const ro = new ResizeObserver(() => {
+    syncDock();
+    drawCircuit();
+    drawGraph(performance.now());
+  });
   ro.observe(circuitCanvas.parentElement);
   ro.observe(graphCanvas.parentElement);
+  ro.observe(document.querySelector(".dock"));
+  syncDock();
 
   function frame(now) {
     const dt = Math.min(0.05, (now - lastTime) / 1000 || 0);
